@@ -19,6 +19,8 @@ tbl(con, 'hotel') %>% inner_join(tbl(con, 'review'), by = c('hotelId' = 'hotelId
   summarise(avg = mean(reviewService)) %>% 
   arrange(desc(avg)) %>% 
   collect() %>% slice(1:3)
+
+#tbl(con, sql('SELECT hotelId, hotelName, hotelRooms from hotel order by hotelRooms desc limit 3'))
 ```
 
 

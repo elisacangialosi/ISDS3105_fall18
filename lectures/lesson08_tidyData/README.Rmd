@@ -35,16 +35,18 @@ What rules of the 3 mentioned above does `sn_users` violate? Could you still plo
 To tidy `sn_users` we want (i) to collapse the millions of users under one variable (called for instance `Mil.Users`), and (ii) to turn the headers `twitter` and `facebook` into levels of a single variable (for instance called `socialNet`). In other words, we want to create key-value pairs, duplicating the column `year` as many time as needed to preserve the association between social network (e.g. twitter), and a number of users observed at a certain year. This is quite straightforward using the function `tidyr::gather()`:
 
 ```{r}
-gather(sn_users, key = 'socialNet', value = 'Mil.Users', twitter, facebook) #' key/value may be unquoted
+tidy_sn_user <- gather(sn_users, key = 'socialNet', value = 'Mil.Users', twitter, facebook)
+tidy_sn_user
+#' key/value may be unquoted
 #gather(sn_users, key = 'socialNet', value = 'Mil.Users', -year) #does the same as above: keeps everything BUT year
 ```
 
 Use the output from the `gather()` above to plot a line chart including both twitter and facebook data.
 
 ```{r}
-tidy_sn_user <- gather(....)
-ggpolot(...) +
-  geom_line(...)
+library(ggplot2)
+ggplot(tidy_sn_user) +
+  geom_line(aes(x = year, y = Mil.Users, color = socialNet))
 ```
 
 Another example of untidy dataset is `untidyReview` (a dataset of online review ratings). Do you see why `untidyReview` is untidy? For instance, suppose we want to plot the distribution or ratings for each attributes (reviewOverall, reviewCleanliness, etc...) with `geom_bar()` and facets. How many/what variables to you need?

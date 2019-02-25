@@ -1,12 +1,12 @@
 ---
-title: "lesson 7: Data manipulation"
+title: "lesson 11: Data manipulation"
 output: github_document
 editor_options: 
   chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, eval = F)
 library(tidyverse)
 load(here::here('data', 'dataset.RData'))
 ```
@@ -14,7 +14,7 @@ load(here::here('data', 'dataset.RData'))
 
 # Data analysis
 
-`dplyr` is a package within the `tidyverse` designed for data manipulation: transforming, selecting, grouping and summarizing variables. The philosphy of `dplyr` is to offer a more intuitive syntax than base R. Also, it makes easy to translate R/dplyr code into SQL queries, which means we can use dplyr to query remote sources such as a MySQL database.
+`dplyr` is a package within the `tidyverse` for data manipulation: transforming, selecting, grouping and summarizing variables. The philosphy of `dplyr` is to offer a more intuitive syntax than base R. Also, it makes easy to translate R/dplyr code into SQL queries, which means we can use dplyr to query remote sources such as a MySQL database.
 
 ## The pipe operator
 
@@ -26,16 +26,16 @@ round(mean(c(1:10, NA), na.rm = T), 0)
 ```
 
 Can be written as
-```{r}
+```{r, eval=TRUE}
 c(1:10, NA) %>% 
   mean(na.rm = T) %>% 
   round(0)
 ```
 
 Which is equivalent to 
-```{r, eval=FALSE}
+```{r}
 c(1:10, NA) %>% 
-  mean(x = . , na.rm = T) %>% #the dot is just a pronoun for what precedes the pipe operator
+  mean(x = . , na.rm = T) %>% #the dot is a pronoun for what precedes the pipe operator
   round(x = ., digits = 0)
 ```
 
@@ -82,14 +82,13 @@ selfiesCasualties %>%
 
 1. Using `titanicDt`, filter the count of female children who did not survive
 ```{r}
-titanicDt %>%
- filter(Age == 'Child' & Sex == "Female" & Survived == "No")
+
 ```
 
 2. Using `beerDt`, filter the records from 1903 to 1997 (use the shortcut `dplyr::between()`)
 ```{r}
-beerDt %>%
- filter(between(Year, 1903, 1997))
+
+
 ```
 
 3. Using `untidyReview`, filter all records with missing values on `reviewLocation`. Hint: you need to use `is.na()` to test what elements are missing.
@@ -112,27 +111,23 @@ titanicDt %>% filter(between(row_number(), 1, 3))
 
 ### Distinct
 
-`distinct` retains unique rows from the input table grouping by the variables specified. For instance, the combination of unique country-gender combinations:
+`distinct` retains unique rows from the input table grouping by the variables passed to `...`. For instance, the combination of unique country-gender combinations:
 
 ```{r}
 selfiesCasualties %>% 
-  #filter(country == 'Spain' & gender == 'Male') %>% 
   distinct(country, gender)
 ```
 
-Note that `distinct` will also automatically drop all columns that are not passed into `distinct`. To keep all columns in the dataset, you need to specify `.keep_all = FALSE`.
+By default, `distinct` retains only the columns of the grouping variables. Use `.keep_all = FALSE` to retain all columns:
 
-1. Using `selfiesCasualties`, subset the dataset by the distinct levels for `class`
+1. Using `selfiesCasualties`, select distinct levels for `class` and keep all variables
 ```{r}
-selfiesCasualties %>%
- distinct(class, .keep_all = TRUE)
 
 ```
 
 2. Using `titanicDt`, create a 2 columns dataset for the unique combinations of `Age` and `Sex`
 ```{r}
-titanicDt %>% distinct(Age, Sex)
-distinct(titanicDt, Age, Sex)
+
 ```
 
 
@@ -148,12 +143,12 @@ selfiesCasualties %>%
 
 1. Using `titanicDt`, arrange by Class, Age, Sex
 ```{r}
-titanicDt %>%  arrange(Class, Age, Sex)
+
 ```
 
-2. Using `titanicDt`, arrange descending by `n`
+2. Using `titanicDt`, arrange descending by `n` (check the examples for `desc()`)
 ```{r}
-arrange(titanicDt, desc(n))
+
 ```
 
 ## Manipulate Columns
@@ -170,34 +165,34 @@ To select multiple columns, you can use `class:age` (from variable class to vari
 
 1. Using `sn_revenue`, select only variables for company names and year 2015.
 ```{r}
-sn_revenue %>%   select(company, y2015)
+
 ```
 
 2. Using `untidyReview`, select only the variables containing review ratings.
 ```{r}
-untidyReview %>%
- select(-reviewId, -reviewStayYear)
+
 ```
 
 
-`mutate()` instead adds a new variable. For example, we can add the birthdate of the victims by subtracting their age from the year of the accident:
+`mutate()` adds a new variable. For example, we can add the birthdate of the victims by subtracting their age from the year of the accident:
 
 ```{r}
 selfiesCasualties %>% 
-  mutate(birthDate = year - as.numeric(age)) %>% slice(1:2)
+  mutate(birthDate = year - as.numeric(age)) %>% 
+  slice(1:2)
 ```
 
-1. Using `beerDt`, convert the consumption from gallons per capita to liters (1 gallon 3.78 liters)
+1. In `beerDt`, convert the consumption from gallons per capita to liters (1 gallon 3.78 liters)
 ```{r}
-beerDt %>%   mutate(liters = GallonsCapita * 3.78)
+
 ```
 
-2. Using `socialNetwork_users` add a percent sign to the variable percent (use `paste0()`)
+2. In `socialNetwork_users` add a percent sign to the variable percent (use `paste0()`)
 ```{r}
-socialNetwork_users %>% mutate(percent = paste0(percent, "%"))
+
 ```
 
-3. Using `untidyReview`, turn `reviewStayYear` into a integer
+3. In `untidyReview`, turn `reviewStayYear` into a integer
 ```{r}
 
 ```
@@ -205,13 +200,15 @@ socialNetwork_users %>% mutate(percent = paste0(percent, "%"))
 
 ### Grouping
 
-`group_by` converts your tibble into subgroups depending on the grouping variable(s). It is usually used to group data before summarising with `summarise`. For instance, to count the number of female and male victims by country:
+`group_by` adds grouping levels to a tibble. For instance, you can combine it with `summarise` to count the number of female and male victims by country:
 
 ```{r, eval=FALSE}
 selfiesCasualties %>% 
   group_by(country, gender) %>% 
   summarise(tot = n())
 ```
+
+Note that every time you use `summarise()`, your tibble drops one grouping level. For instance in the latter example, data are still grouped by country, and any further dplyr verb would apply groupwise unless we `ungroup()` first.
 
 1. Using `titanicDt`, calculate the average casualties by class (note that the dataset has both survivors/non-survivors counts)
 ```{r}
@@ -242,9 +239,7 @@ titanicDt %>%
 ```
 
 
-`n()` is the count operator in dplyr (it works only within a `summarise()`, `mutate()` or `filter()`), and counts the rows by group level without taking any argument. Note that every time you use `summarise()`, your tibble drops one grouping level. For instance in the latter example, data are still grouped by country, and any further dplyr verb would apply groupwise unless we `ungroup()` first.
-
-Because counting observations is a very common task, dplyr offers the wrapper `count`, which is equivalent to `group_by %>% summarise( n() )` except that it `ungroup()` after. 
+`n()` is the count operator in dplyr (it works only within a `summarise()`, `mutate()` or `filter()`), and counts the rows by group level without taking any argument. Because counting observations is a very common task, dplyr offers the wrapper `count`, which is equivalent to `group_by %>% summarise( n() )` except that it `ungroup()` after. 
 
 ```{r}
 selfiesCasualties %>% 
@@ -258,7 +253,7 @@ Exercise: Use `selfiesCasualties` to calculate the percent of casualties by clas
 
 ## Manipulating dataframes
 
-Sometimes you need to combine different datasets into one. To join different dataset, you need at least one variable showing what is the relationship between the datasets and how to join them. For instance, consider the case where you have two separates dataset about the count of twitter and FB users during the same years (Source: eMarketer):
+Functions from the `*_join` family serve to merge datasets. To join different datasets, you need at least one variable to serve as a key for joining. For instance, consider the case where you have two separates dataset about the count of twitter and FB users during the same years (Source: eMarketer):
 
 ```{r}
 twitter_users
@@ -272,12 +267,12 @@ twitter_users %>%
   full_join(fbMobile_users, by = c('Year' = 'Year'), suffix  = c('twitter', 'fb'))
 
 twitter_users %>% 
-inner_join(fbMobile_users, by = 'Year', suffix  = c('twitter', 'fb'))
+  inner_join(fbMobile_users, by = 'Year', suffix  = c('twitter', 'fb'))
 ```
 
-Note that if you do not pass a character vector of variables to join, `*_join` uses all the variables with common names across the two tables.
+If you do not pass a character vector of variables to join, `*_join` uses all the variables with common names across the two tables. 
 
-The last example is simple because both datasets have the same number of rows and values, does `full_join`, `left_join, or `right_join` gives the same result. However, say we add one extra value for `fbMobile_users` and `twitter_users`. In the following example instead we need to consider which join is the most appropriate since `fbMobile_users`:
+In the previous example `full_join`, `left_join`, or `right_join` give the same result. However, each of them merge using different ruels. To show how the differe, we add a row to each dataset:
 
 ```{r}
 fbMobile_users <- fbMobile_users %>% 
@@ -294,7 +289,6 @@ fbMobile_users %>%
   full_join(twitter_users, by = 'Year', suffix = c('fb', 'twitter'))
 ```
 
-
 To keep only the years for those which appear in both datasets:
 
 ```{r}
@@ -303,7 +297,7 @@ fbMobile_users %>%
 ```
 
 
-Morover:
+To summarise:
 
 ```{r}
 #use ?left_join() ... to view the documentation
@@ -319,18 +313,10 @@ semi_join(twitter_users, fbMobile_users, by = 'Year') #retain all records from A
 ```{r}
 #we need 2 datasets from ncyflights13 package:
 if (!require(nycflights13)) install.packages('nycflights13')
-#flights
-#airlines
-right_join(flights, airlines) %>% nrow
-semi_join(flights, airlines) %>% nrow
-full_join(flights, airlines) %>% nrow
-full_join(flights, airlines) %>% nrow
-semi_join(airlines, flights) %>% nrow
-left_join(airlines, flights) %>% nrow
 ```
 
 
-1. Use the appropriate join to add the full carrier names to `flights` using `airlines` :
+1. Use the appropriate join to add the column with full carrier names to `flights` using `airlines` :
 
 ```{r}
 
@@ -349,7 +335,7 @@ left_join(airlines, flights) %>% nrow
 
 ```
 
-4. What is the busiest route?
+4. What is the busiest route (i.e., origin-destination pair)?
 
 ```{r}
 
