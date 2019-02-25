@@ -1,13 +1,16 @@
-#' Follow the README.md sign up for a Socrata API
-#' To use the Socrata API:
-#' create your  `token <- c(sec = ..., app = ...)` and keep 
-#' it into a separate .R to source()
+#' Follow the README.md to sign up for a Socrata API
 
 library(RSocrata)
 library(here)
 library(tidyverse)
 
-source(here('lectures', 'lesson11_openData', 'tokenSocrata.R'))
+
+
+#' To usethe Socrata API :
+#' create your  `token <- c(sec = ..., app = ...)` and `hide it` 
+#' it into a separate .R to source()
+#  e.g.,: source(here('lectures', 'lesson13_openData', 'tokenSocrata.R'))
+
 #' Google API requirements has changed. As a results, the package
 #' ggmap needs revisions. For now, we are stacked witht he dev version
 if(!requireNamespace("devtools")) install.packages("devtools")
